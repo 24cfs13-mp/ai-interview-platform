@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+venv/
+venv311/
+ENV/
+env/
+.vscode/
+.idea/
+*.db
+hireai.db
+pip_install.log
+crewai_error.log
