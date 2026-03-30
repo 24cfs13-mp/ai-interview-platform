@@ -237,19 +237,19 @@ const Interview = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-[#050505] text-white flex flex-col font-sans selection:bg-electric selection:text-[#050505] overflow-hidden">
+    <div className="h-[100dvh] min-h-[100dvh] w-full bg-[#050505] text-white flex flex-col font-sans selection:bg-electric selection:text-[#050505] overflow-hidden">
       
       {/* Top Protocol Header */}
-      <header className="h-16 border-b-4 border-white bg-[#050505] flex items-center justify-between px-6 shrink-0 z-20">
-        <div className="flex items-center gap-6">
+      <header className="h-14 sm:h-16 border-b-4 border-white bg-[#050505] flex items-center justify-between px-4 sm:px-6 shrink-0 z-20">
+        <div className="flex items-center gap-3 sm:gap-6">
           <div className="flex items-center gap-3">
-            <span className="flex h-8 w-8 items-center justify-center bg-white text-[#050505] font-black font-mono shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] cursor-pointer" onClick={() => navigate('/')}>H</span>
-            <span className="font-black uppercase tracking-widest text-lg hidden sm:block">Arena</span>
+            <span className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center bg-white text-[#050505] font-black font-mono shadow-[2px_2px_0px_0px_rgba(255,255,255,0.3)] cursor-pointer" onClick={() => navigate('/')}>H</span>
+            <span className="font-black uppercase tracking-widest text-base sm:text-lg hidden sm:block">Arena</span>
           </div>
           <div className="h-6 w-[2px] bg-[#333]"></div>
-          <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-            <Hash className="w-4 h-4 text-electric" />
-            OBJ_ID: {sessionId?.substring(0,8).toUpperCase()}
+          <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest flex items-center gap-1 sm:gap-2">
+            <Hash className="w-3 h-3 sm:w-4 sm:h-4 text-electric" />
+            <span className="hidden xs:inline">OBJ_ID:</span> {sessionId?.substring(0,6).toUpperCase()}
           </span>
         </div>
         <div className="flex items-center gap-6">
@@ -342,7 +342,7 @@ const Interview = () => {
         <div className="flex-1 flex flex-col bg-[#050505] min-w-0 border-r-2 border-zinc-800">
           
           {/* Chat Readout */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 scrollbar-hide">
             <AnimatePresence>
               {chatHistory.map((msg, idx) => (
                 <motion.div 
@@ -359,7 +359,7 @@ const Interview = () => {
                       </span>
                     </div>
                   ) : (
-                    <div className={`flex w-full max-w-2xl ${msg.role === 'candidate' ? 'flex-row-reverse' : 'flex-row'} gap-6`}>
+                    <div className={`flex w-full max-w-2xl ${msg.role === 'candidate' ? 'flex-row-reverse' : 'flex-row'} gap-3 sm:gap-6`}>
                       <div className="shrink-0">
                         {msg.role === 'agent' ? (
                           <div className="h-10 w-10 bg-white text-[#050505] border-2 border-white flex items-center justify-center font-black text-sm uppercase">
@@ -398,7 +398,7 @@ const Interview = () => {
                       AI
                     </div>
                  </div>
-                 <div className="p-5 border-2 border-zinc-800 bg-[#111] text-zinc-500 font-mono text-xs uppercase tracking-widest flex items-center gap-2">
+                  <div className="p-4 sm:p-5 border-2 border-zinc-800 bg-[#111] text-zinc-500 font-mono text-[10px] sm:text-xs uppercase tracking-widest flex items-center gap-2">
                     [COMPUTING_RESPONSE] <span className="w-2 h-4 bg-zinc-400 animate-pulse"></span>
                  </div>
               </motion.div>
@@ -426,7 +426,7 @@ const Interview = () => {
                 {/* Click to speak toggle */}
                 <button
                   onClick={toggleListening}
-                  className={`relative flex h-14 w-14 items-center justify-center shrink-0 border-2 transition-all ${
+                  className={`relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center shrink-0 border-2 transition-all ${
                     isListening 
                       ? 'bg-red-600 border-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] animate-pulse' 
                       : 'bg-transparent border-zinc-700 text-zinc-500 hover:border-toxic hover:text-toxic'

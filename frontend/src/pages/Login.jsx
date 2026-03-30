@@ -99,17 +99,17 @@ const Login = () => {
           className="max-w-xl"
         >
           <div className="overflow-hidden mb-2">
-            <motion.h1 variants={itemVariants} className="text-7xl xl:text-8xl font-black tracking-tighter uppercase leading-[0.9]">
+            <motion.h1 variants={itemVariants} className="text-5xl sm:text-7xl xl:text-8xl font-black tracking-tighter uppercase leading-[0.9]">
               Prove.
             </motion.h1>
           </div>
           <div className="overflow-hidden mb-2">
-            <motion.h1 variants={itemVariants} className="text-7xl xl:text-8xl font-black tracking-tighter uppercase leading-[0.9] text-electric">
+            <motion.h1 variants={itemVariants} className="text-5xl sm:text-7xl xl:text-8xl font-black tracking-tighter uppercase leading-[0.9] text-electric">
               Your.
             </motion.h1>
           </div>
           <div className="overflow-hidden">
-            <motion.h1 variants={itemVariants} className="text-7xl xl:text-8xl font-black tracking-tighter uppercase leading-[0.9]">
+            <motion.h1 variants={itemVariants} className="text-5xl sm:text-7xl xl:text-8xl font-black tracking-tighter uppercase leading-[0.9]">
               Worth.
             </motion.h1>
           </div>
@@ -140,7 +140,7 @@ const Login = () => {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-          className="w-full max-w-[440px] bg-[#050505]/70 backdrop-blur-xl p-8 border border-[#222] shadow-[8px_8px_0px_0px_rgba(255,74,0,0.5)]"
+          className="w-full max-w-[440px] bg-[#050505]/70 backdrop-blur-xl p-6 sm:p-8 border border-[#222] shadow-[4px_4px_0px_0px_rgba(255,74,0,0.5)] sm:shadow-[8px_8px_0px_0px_rgba(255,74,0,0.5)]"
         >
           <div className="mb-12">
             <h2 className="text-3xl font-bold tracking-tight mb-2">Initialize Session</h2>

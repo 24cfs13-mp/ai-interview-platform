@@ -101,7 +101,7 @@ const Setup = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#050505] text-white p-6 md:p-12 font-sans selection:bg-electric selection:text-[#050505] overflow-hidden relative">
+    <div className="min-h-screen w-full bg-[#050505] text-white p-4 sm:p-8 md:p-12 font-sans selection:bg-electric selection:text-[#050505] overflow-x-hidden relative">
       
       {/* Animated Background Grid & Scanline */}
       <div 
@@ -118,8 +118,8 @@ const Setup = () => {
       />
       
       {/* Heavy Corner Borders */}
-      <div className="absolute top-0 left-0 w-32 h-32 border-t-8 border-l-8 border-electric pointer-events-none z-0 opacity-50 m-6" />
-      <div className="absolute bottom-0 right-0 w-32 h-32 border-b-8 border-r-8 border-toxic pointer-events-none z-0 opacity-50 m-6" />
+      <div className="absolute top-0 left-0 w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 border-t-8 border-l-8 border-electric pointer-events-none z-0 opacity-50 m-4 sm:m-6" />
+      <div className="absolute bottom-0 right-0 w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 border-b-8 border-r-8 border-toxic pointer-events-none z-0 opacity-50 m-4 sm:m-6" />
       
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* Top Header Bar */}
@@ -129,17 +129,17 @@ const Setup = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="flex flex-col md:flex-row justify-between items-start md:items-center border-b-4 border-white pb-6 mb-12 gap-6"
         >
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             <motion.div 
               animate={{ rotate: 360 }}
               transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
-              className="w-16 h-16 bg-toxic flex items-center justify-center text-[#050505] font-black text-3xl font-mono border-4 border-white shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] cursor-pointer"
+              className="w-12 h-12 sm:w-16 sm:h-16 bg-toxic flex items-center justify-center text-[#050505] font-black text-2xl sm:text-3xl font-mono border-4 border-white shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] sm:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)] cursor-pointer"
               onClick={() => navigate('/')}
             >
               H
             </motion.div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none flex items-center gap-3">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none flex items-center gap-3">
                 <GlitchText text="Configuration" />
                 <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 1 }}>_</motion.span>
               </h1>

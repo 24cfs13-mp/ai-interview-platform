@@ -182,7 +182,7 @@ const Results = () => {
   const isHire = resultsData.overall_score >= 70;
 
   return (
-    <div className="min-h-screen w-full bg-[#050505] text-white p-6 md:p-12 flex justify-center font-sans selection:bg-electric selection:text-[#050505]">
+    <div className="min-h-screen w-full bg-[#050505] text-white p-4 sm:p-8 md:p-12 flex justify-center font-sans selection:bg-electric selection:text-[#050505]">
       
       <div ref={reportRef} className="w-full max-w-6xl space-y-12">
         
@@ -193,9 +193,9 @@ const Results = () => {
                H
              </div>
              <div>
-               <h1 className="text-2xl font-black uppercase tracking-widest leading-none text-white">Post-Action Report</h1>
-               <p className="font-mono text-xs text-zinc-400 uppercase tracking-widest mt-1">[AAR] AFTER ACTION REVIEW</p>
-             </div>
+             <h1 className="text-xl sm:text-2xl font-black uppercase tracking-widest leading-none text-white">Post-Action Report</h1>
+             <p className="font-mono text-[10px] text-zinc-400 uppercase tracking-widest mt-1">[AAR] AFTER ACTION REVIEW</p>
+           </div>
            </div>
            
            <div className="flex items-center gap-2 bg-[#111] border-2 border-[#CCFF00] px-3 py-2 text-[#CCFF00] font-mono text-[10px] uppercase font-bold tracking-widest shadow-[4px_4px_0px_0px_rgba(204,255,0,1)]">
@@ -211,8 +211,8 @@ const Results = () => {
               <div className="absolute top-0 right-0 p-4 font-mono text-[#050505] text-9xl font-black opacity-10 pointer-events-none">
                  {resultsData.overall_score}
               </div>
-              <h2 className="text-sm font-mono text-zinc-400 uppercase tracking-widest mb-2 border-l-2 border-electric pl-3">Candidate Designation</h2>
-              <h1 className="text-5xl sm:text-7xl font-black uppercase tracking-tighter mb-12 text-outline-active" style={{ WebkitTextStroke: '2px white', color: 'transparent' }}>
+              <h2 className="text-[10px] sm:text-sm font-mono text-zinc-400 uppercase tracking-widest mb-2 border-l-2 border-electric pl-3">Candidate Designation</h2>
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black uppercase tracking-tighter mb-8 sm:mb-12 text-outline-active" style={{ WebkitTextStroke: '1px white', color: 'transparent' }}>
                 {resultsData.candidate_name}
               </h1>
 
@@ -224,12 +224,12 @@ const Results = () => {
                      {isHire ? 'APPROVE / HIRE' : 'REJECT / REVIEW'}
                    </div>
                  </div>
-                 <div className="text-right">
-                   <h3 className="text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1">Index Score</h3>
-                   <div className="text-7xl font-mono font-black tabular-nums leading-none">
-                     {resultsData.overall_score}
-                   </div>
-                 </div>
+                  <div className="text-right">
+                    <h3 className="text-[10px] sm:text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1">Index Score</h3>
+                    <div className="text-5xl sm:text-7xl font-mono font-black tabular-nums leading-none">
+                      {resultsData.overall_score}
+                    </div>
+                  </div>
               </div>
            </div>
 
