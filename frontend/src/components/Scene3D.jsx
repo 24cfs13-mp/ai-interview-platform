@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Float, Stars } from '@react-three/drei';
 
@@ -28,6 +28,14 @@ const AICore = () => {
 };
 
 const Scene3D = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="absolute inset-0 z-0 pointer-events-auto overflow-hidden">
       <Canvas camera={{ position: [0, 0, 8], fov: 45 }}>
@@ -41,14 +49,14 @@ const Scene3D = () => {
         {/* Interactive orbital rotation */}
         <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.8} />
         
-        {/* Positioned slightly to the left side to sit beautifully behind typography */}
-        <group position={[-2, 0, 0]}>
+        {/* Responsive position: centered on mobile, left-aligned on desktop */}
+        <group position={isMobile ? [0, 1.5, 0] : [-2.5, 0, 0]}>
            <AICore />
         </group>
       </Canvas>
       
       {/* Dark gradient overlay to blend 3D canvas seamlessly into the dark background */}
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-transparent via-[#050505]/60 to-[#050505] z-10" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#050505]/40 via-transparent to-[#050505] lg:from-transparent lg:via-[#050505]/60 lg:to-[#050505] z-10" />
     </div>
   );
 };
