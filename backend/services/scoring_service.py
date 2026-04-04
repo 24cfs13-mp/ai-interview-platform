@@ -3,6 +3,10 @@ from bson import ObjectId
 import re
 
 async def compute_results(db, session_id: str) -> dict:
+    # Get session data for gaze score
+    session = await db.sessions.find_one({"_id": ObjectId(session_id)})
+    gaze_score = session.get("average_gaze", 85.0) if session else 85.0
+
     # Get all logs for the session
     cursor = db.messages.find({"session_id": session_id, "sender": "SCORE_UPDATE"})
     logs = await cursor.to_list(length=1000)
@@ -38,6 +42,7 @@ async def compute_results(db, session_id: str) -> dict:
         "technical_depth": technical_depth,
         "communication": communication,
         "problem_solving": problem_solving,
+        "gaze_score": int(gaze_score),
         "strengths": feedback_segments[:2] if feedback_segments else ["Solid responses under pressure."],
         "areas_for_improvement": ["Consider elaborating on deeper edge cases.", "Discussing precise scalable architectures."],
         "key_metrics": [

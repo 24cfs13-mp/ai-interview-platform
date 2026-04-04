@@ -31,7 +31,7 @@ const BrutalistMeter = ({ percentage, label, isStrength }) => {
 const Results = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { sessionId } = location.state || {};
+  const { sessionId, terminationReason } = location.state || { sessionId: null, terminationReason: 'NORMAL' };
   const candidateName = localStorage.getItem('candidateName') || 'Candidate';
   
   const reportRef = useRef(null);
@@ -134,7 +134,17 @@ const Results = () => {
           analysis: imp,
           quote: `[EXTRACTED_LOG] -> Candidate struggled slightly or missed edge cases regarding: ${imp}`,
           type: 'weakness'
-      }))
+      })),
+      {
+          id: 'behavioral-1',
+          criteria: "PROPER GAZE LOCK & FOCUS",
+          score: resultsData.gaze_score,
+          analysis: resultsData.gaze_score >= 80 
+              ? "Candidate maintained exceptional focus throughout the session. No suspicious window-switching or gaze drifts detected." 
+              : "Candidate showed intermittent focus lapses or window blur events. System flagged behavioral inconsistencies.",
+          quote: `[TELEMETRY_STREAM] -> Average Focus Stability: ${resultsData.gaze_score}% across entire protocol duration.`,
+          type: 'strength'
+      }
   ];
 
   const getMetricValue = (label) => {
@@ -186,6 +196,28 @@ const Results = () => {
       
       <div ref={reportRef} className="w-full max-w-6xl space-y-12">
         
+        {/* Security Violation Alert */}
+        {terminationReason === 'SECURITY_VIOLATION' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-12 bg-red-600 border-8 border-white p-6 shadow-[12px_12px_0px_0px_rgba(255,255,255,1)] text-white"
+          >
+            <div className="flex items-start gap-6">
+              <div className="shrink-0 bg-white p-3 text-red-600">
+                <AlertTriangle className="w-10 h-10" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-black uppercase tracking-tighter mb-2 italic">Critical Security Breach Detected</h2>
+                <p className="font-mono text-sm leading-relaxed uppercase font-bold">
+                  Evaluation protocol was automatically terminated by SYS_SEC after multiple unauthorized focus shifts (Tab Switching). 
+                  Candidate integrity is compromised. Manual review requested by panel.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        
         {/* Top Header / Anti-Bias Footer style moved up */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-4 border-white pb-6 mb-12">
            <div className="flex items-center gap-4 mb-4 sm:mb-0">
@@ -201,6 +233,19 @@ const Results = () => {
            <div className="flex items-center gap-2 bg-[#111] border-2 border-[#CCFF00] px-3 py-2 text-[#CCFF00] font-mono text-[10px] uppercase font-bold tracking-widest shadow-[4px_4px_0px_0px_rgba(204,255,0,1)]">
              <ShieldCheck className="w-4 h-4" />
              AI BIAS MONITOR: CLEAR // DRIFT: 0.0%
+           </div>
+           
+           <div className={`flex items-center gap-2 bg-[#111] border-2 px-3 py-2 font-mono text-[10px] uppercase font-bold tracking-widest shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] ${
+             resultsData.gaze_score >= 85 ? 'border-[#CCFF00] text-[#CCFF00]' : 
+             resultsData.gaze_score >= 65 ? 'border-electric text-electric' : 
+             'border-red-500 text-red-500 animate-pulse'
+           }`}>
+             <Layout className="w-4 h-4" />
+             BEHAVIORAL AUTHENTICITY: {
+               resultsData.gaze_score >= 85 ? 'HIGH_CONFIDENCE // GENUINE' :
+               resultsData.gaze_score >= 65 ? 'NOMINAL' :
+               'SUSPICIOUS_ACTIVITY // FLAG'
+             }
            </div>
         </div>
 
@@ -239,6 +284,7 @@ const Results = () => {
                 <BrutalistMeter percentage={getMetricValue("tech")} label="Technical Execution" isStrength={getMetricValue("tech") >= 75} />
                 <BrutalistMeter percentage={getMetricValue("comm")} label="Communication Protocol" isStrength={getMetricValue("comm") >= 75} />
                 <BrutalistMeter percentage={getMetricValue("design")} label="System Architecture" isStrength={getMetricValue("design") >= 75} />
+                <BrutalistMeter percentage={resultsData.gaze_score} label="Gaze Stability / Focus" isStrength={resultsData.gaze_score >= 80} />
               </div>
               
               <button disabled={isExporting} onClick={handleExport} data-html2canvas-ignore className="mt-8 w-full bg-white text-[#050505] font-black uppercase tracking-widest py-4 px-6 flex items-center justify-between transition-all group border-2 border-white hover:bg-transparent hover:text-white disabled:opacity-50">

@@ -22,6 +22,7 @@ class ResultResponse(BaseModel):
     strengths: List[str]
     improvements: List[str]
     status: str
+    gaze_score: int = 85
 
 @router.get("/{session_id}", response_model=ResultResponse)
 async def get_results(
@@ -56,5 +57,6 @@ async def get_results(
         ],
         strengths=feedback.get("strengths", []),
         improvements=feedback.get("areas_for_improvement", []),
-        status="Finalized"
+        status="Finalized",
+        gaze_score=feedback.get("gaze_score", 85)
     )

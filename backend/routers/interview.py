@@ -123,3 +123,27 @@ async def process_message(
         agent_response=agent_resp,
         evaluator_logs=formatted_logs
     )
+
+class MetricsPayload(BaseModel):
+    average_gaze: float
+    termination_reason: str = "NORMAL"
+
+@router.post("/{session_id}/metrics")
+async def save_metrics(
+    session_id: str,
+    payload: MetricsPayload,
+    db = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    try:
+        # Update session with gaze score and reason
+        await db.sessions.update_one(
+            {"_id": ObjectId(session_id), "user_id": current_user["id"]},
+            {"$set": {
+                "average_gaze": payload.average_gaze,
+                "termination_reason": payload.termination_reason
+            }}
+        )
+        return {"status": "Metrics saved"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to save metrics: {str(e)}")

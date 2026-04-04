@@ -60,6 +60,7 @@ def process_candidate_message(candidate_message: str, conversation_history: list
     try:
         # NEW CREWAI STANDARD: Just pass the provider/model string.
         # This completely bypasses the Pydantic validation error.
+        # Upgraded to gemini-2.5-flash as 1.5 versions are no longer supported.
         llm_model = "gemini/gemini-2.5-flash"
 
         interviewer_agent = Agent(
@@ -68,7 +69,8 @@ def process_candidate_message(candidate_message: str, conversation_history: list
             backstory=f'You are a senior technical recruiter at {company_name}. Your job is purely to advance the conversation and ask the candidate relevant follow-up questions based on their answers. You MUST ask technical questions that are historically asked by {company_name}.',
             verbose=False,
             allow_delegation=False,
-            llm=llm_model
+            llm=llm_model,
+            max_rpm=10
         )
 
         evaluator_agent = Agent(
@@ -77,7 +79,8 @@ def process_candidate_message(candidate_message: str, conversation_history: list
             backstory='You are a strict technical grader. You do not speak to the candidate; you only evaluate their words and assign a score delta.',
             verbose=False,
             allow_delegation=False,
-            llm=llm_model
+            llm=llm_model,
+            max_rpm=10
         )
 
         bias_agent = Agent(
@@ -86,7 +89,8 @@ def process_candidate_message(candidate_message: str, conversation_history: list
             backstory='You are an AI ethics and compliance monitor. You ensure the candidate communicates respectfully and neutrally.',
             verbose=False,
             allow_delegation=False,
-            llm=llm_model
+            llm=llm_model,
+            max_rpm=10
         )
         
         json_compiler_agent = Agent(
@@ -95,7 +99,8 @@ def process_candidate_message(candidate_message: str, conversation_history: list
             backstory='You are a backend server parser. You only output valid JSON.',
             verbose=False,
             allow_delegation=False,
-            llm=llm_model
+            llm=llm_model,
+            max_rpm=10
         )
 
         interview_task = Task(

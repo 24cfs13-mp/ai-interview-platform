@@ -80,13 +80,23 @@ const Setup = () => {
       });
       if (res.ok) {
          const data = await res.json();
-         navigate('/interview', { state: { sessionId: data.session_id, initialMessage: data.initial_message } });
+         navigate('/interview', { state: { 
+           sessionId: data.session_id, 
+           initialMessage: data.initial_message,
+           camEnabled,
+           micEnabled
+         } });
       } else {
          console.error("Start failed");
          navigate('/login');
       }
     } catch {
-       navigate('/interview', { state: { sessionId: "MOCK-SESSION-123", initialMessage: "INITIALIZING MODULE..." } });
+       navigate('/interview', { state: { 
+         sessionId: "MOCK-SESSION-123", 
+         initialMessage: "INITIALIZING MODULE...",
+         camEnabled,
+         micEnabled
+       } });
     }
   };
 

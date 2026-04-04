@@ -6,7 +6,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const Interview = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sessionId, initialMessage } = location.state || { sessionId: "MERN-Tech-Fallback", initialMessage: "[SYS_INIT] CONNECTION ESTABLISHED. STATE YOUR NAME AND PROCEED." };
+  const { sessionId, initialMessage, camEnabled, micEnabled } = location.state || { 
+    sessionId: "MOCK-SESSION", 
+    initialMessage: "[SYS_INIT] CONNECTION ESTABLISHED. PROCEED.",
+    camEnabled: true,
+    micEnabled: true
+  };
 
   const candidateName = localStorage.getItem('candidateName') || 'CANDIDATE';
   const candidateInitials = candidateName.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
@@ -15,31 +20,76 @@ const Interview = () => {
   const [inputText, setInputText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   
+  // Security & Enforcement
+  const [warningCount, setWarningCount] = useState(0);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [shutterAlert, setShutterAlert] = useState(false);
+  
   // Real-time Bio-metrics States
   const [stream, setStream] = useState(null);
   const [vocalStress, setVocalStress] = useState(15);
-  const [gazeLock, setGazeLock] = useState(98);
+  const [gazeLock, setGazeLock] = useState(camEnabled ? 98 : 0);
   const [gazeAlert, setGazeAlert] = useState(false);
-  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(camEnabled);
   const [isListening, setIsListening] = useState(false);
+  const [gazeHistory, setGazeHistory] = useState([]);
 
   const videoRef = useRef(null);
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const animationFrameRef = useRef(null);
   const recognitionRef = useRef(null);
+  const streamRef = useRef(null);
+  const canvasRef = useRef(null);
+  const shutterLoopRef = useRef(null);
 
   // Initialize Media Stream & Audio Analyzer
   useEffect(() => {
     const initStream = async () => {
+      if (!camEnabled && !micEnabled) return;
+      
       try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+          video: camEnabled, 
+          audio: micEnabled 
+        });
         setStream(mediaStream);
-        setIsCameraActive(true);
-        if (videoRef.current) {
+        streamRef.current = mediaStream;
+        setIsCameraActive(camEnabled);
+        if (videoRef.current && camEnabled) {
           videoRef.current.srcObject = mediaStream;
         }
         
+        // Start Shutter Detection Loop if camera is active
+        if (camEnabled) {
+          const checkShutter = () => {
+            if (videoRef.current && canvasRef.current) {
+              const canvas = canvasRef.current;
+              const video = videoRef.current;
+              const ctx = canvas.getContext('2d', { willReadFrequently: true });
+              
+              if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const frameData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                let totalBrightness = 0;
+                for (let i = 0; i < frameData.length; i += 40) { // Sample
+                  totalBrightness += (frameData[i] + frameData[i+1] + frameData[i+2]) / 3;
+                }
+                const avgBrightness = totalBrightness / (frameData.length / 40);
+                
+                if (avgBrightness < 10) { // Very dark, shutter likely closed
+                  setShutterAlert(true);
+                  setGazeLock(0);
+                } else {
+                  setShutterAlert(false);
+                }
+              }
+            }
+            shutterLoopRef.current = requestAnimationFrame(checkShutter);
+          };
+          checkShutter();
+        }
+
         // Setup Audio Analyzer
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
@@ -66,7 +116,7 @@ const Interview = () => {
       } catch (err) {
         console.error("Media access denied:", err);
         setIsCameraActive(false);
-        setGazeLock(5);
+        setGazeLock(0); // Force 0 if access denied
         setGazeAlert(true);
         setVisibleLogs(prev => [...prev, "> [GAZE_LOSS_DETECTED] V_FEED CRITICAL"]);
       }
@@ -100,9 +150,36 @@ const Interview = () => {
       recognitionRef.current = recognition;
     }
 
+    const handleBlur = () => {
+      setGazeLock(0);
+      setGazeAlert(true);
+      setVisibleLogs(prev => [...prev, "> [GAZE_LOSS_DETECTED] V_FEED CRITICAL: WINDOW_BLUR"]);
+      
+      // Increment warning count
+      setWarningCount(prev => {
+        const next = prev + 1;
+        if (next >= 3) {
+           // Auto-abort handled via useEffect monitoring warningCount
+        } else {
+           setShowWarningModal(true);
+        }
+        return next;
+      });
+    };
+
+    const handleFocus = () => {
+      setGazeAlert(false);
+      setVisibleLogs(prev => [...prev, "> [GAZE_RESTORED] V_FEED NOMINAL: FOCUS_REGAINED"]);
+    };
+
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -110,37 +187,55 @@ const Interview = () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      if (shutterLoopRef.current) {
+        cancelAnimationFrame(shutterLoopRef.current);
+      }
     };
   }, []);
 
-  // Gaze Tracking Logic (Active-Aware)
+  // Auto-Abort Logic & Gaze Tracking Update
+  useEffect(() => {
+    if (warningCount >= 3) {
+      endSession("SECURITY_VIOLATION");
+    }
+  }, [warningCount]);
+
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!isCameraActive) {
-        setGazeLock(5);
-        setGazeAlert(true);
+      // Priority 1: Hardware Sync
+      if (!camEnabled || !isCameraActive || shutterAlert) {
+        setGazeLock(0);
+        setGazeHistory(prev => [...prev.slice(-49), 0]);
         return;
       }
 
-      // Maintain baseline 90%+ when active, with occasional heavy dips
-      const criticalDip = Math.random() > 0.95;
+      // Priority 2: Focus Sync
+      const isFocused = document.hasFocus();
+      if (!isFocused) {
+        setGazeLock(0);
+        setGazeHistory(prev => [...prev.slice(-49), 0]);
+        return;
+      }
+
+      // Priority 3: Healthy Simulation
+      const criticalDip = Math.random() > 0.98;
       if (criticalDip) {
-        setGazeLock(5); // Drop to <10% as requested for critical loss
+        const dipValue = 10 + Math.random() * 20;
+        setGazeLock(dipValue); 
         setGazeAlert(true);
         setVisibleLogs(prev => [...prev, "> [GAZE_LOSS_DETECTED] V_FEED CRITICAL"]);
+        setGazeHistory(prev => [...prev.slice(-49), dipValue]);
         setTimeout(() => setGazeAlert(false), 2000);
       } else {
-        const minorFluctuation = Math.random() > 0.7;
-        setGazeLock(prev => {
-          if (prev < 90) return prev + 10; // Rapid recovery
-          return 92 + Math.random() * 7; // Baseline 92-99%
-        });
+        const newValue = 94 + Math.random() * 5;
+        setGazeLock(newValue);
+        setGazeHistory(prev => [...prev.slice(-49), newValue]);
         if (gazeLock > 10) setGazeAlert(false);
       }
     }, 1500);
 
     return () => clearInterval(interval);
-  }, [isCameraActive, gazeLock]);
+  }, [isCameraActive, gazeLock, camEnabled, shutterAlert]);
 
   const toggleListening = () => {
     if (isListening) {
@@ -232,8 +327,45 @@ const Interview = () => {
     if (e.key === 'Enter') handleSendMessage();
   };
 
-  const endSession = () => {
-    navigate('/results', { state: { sessionId } });
+  const endSession = async (reason = "NORMAL") => {
+    // Calculate average gaze
+    const avgGaze = gazeHistory.length > 0 
+      ? gazeHistory.reduce((a, b) => a + b, 0) / gazeHistory.length 
+      : 85;
+
+    // Explicitly stop all media tracks to turn off camera/mic immediately
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    // Stop audio visualizer
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    setIsCameraActive(false);
+
+    // Save metrics to backend
+    try {
+      const token = localStorage.getItem('hireai_token');
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      await fetch(`${baseUrl}/api/interview/${sessionId}/metrics`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          average_gaze: avgGaze,
+          termination_reason: reason
+        })
+      });
+    } catch (err) {
+      console.error("Failed to save session metrics", err);
+    }
+
+    navigate('/results', { state: { sessionId, terminationReason: reason } });
   };
 
   return (
@@ -553,6 +685,61 @@ const Interview = () => {
         </div>
 
       </div>
+
+      {/* Hidden Canvas for Shutter Detection Analysis */}
+      <canvas ref={canvasRef} width="64" height="48" className="hidden" />
+
+      {/* Warning Modals & Overlays */}
+      <AnimatePresence>
+        {showWarningModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-red-600 text-white p-8 border-8 border-white shadow-[20px_20px_0px_0px_rgba(255,255,255,1)] max-w-lg w-full font-black uppercase"
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <AlertCircle className="w-12 h-12" />
+                <h2 className="text-4xl tracking-tighter">Security Alert</h2>
+              </div>
+              <p className="font-mono text-lg mb-8 leading-relaxed">
+                Tab switching detected. This is warning <span className="underline">{warningCount}/3</span>. 
+                Persistent violations will result in automatic termination and failure.
+              </p>
+              <button 
+                onClick={() => setShowWarningModal(false)}
+                className="w-full bg-white text-red-600 py-4 px-6 text-2xl tracking-widest hover:bg-zinc-200 transition-colors"
+              >
+                Acknowledge_Risk
+              </button>
+            </motion.div>
+          </div>
+        )}
+
+        {shutterAlert && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
+             <motion.div 
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="bg-white text-black p-8 border-8 border-electric shadow-[20px_20px_0px_0px_rgba(255,74,0,1)] max-w-lg w-full font-black uppercase text-center"
+            >
+              <Video className="w-16 h-16 mx-auto mb-6 text-red-600 animate-pulse" />
+              <h2 className="text-3xl tracking-tighter mb-4">Feed_Silent</h2>
+              <p className="font-mono mb-8 text-sm opacity-70">
+                Visual feed blocked or shutter closed. Please ensure camera shutter is OPEN to continue evaluation protocol.
+              </p>
+              <div className="h-2 w-full bg-zinc-200 overflow-hidden">
+                 <motion.div 
+                   animate={{ x: [-200, 400] }}
+                   transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                   className="h-full w-48 bg-electric"
+                 />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
