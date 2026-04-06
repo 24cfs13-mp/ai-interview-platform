@@ -138,18 +138,18 @@ const Results = () => {
       {
           id: 'behavioral-1',
           criteria: "PROPER GAZE LOCK & FOCUS",
-          score: resultsData.gaze_score,
-          analysis: resultsData.gaze_score >= 80 
+          score: resultsData.gaze_score || 0,
+          analysis: (resultsData.gaze_score || 0) >= 80 
               ? "Candidate maintained exceptional focus throughout the session. No suspicious window-switching or gaze drifts detected." 
               : "Candidate showed intermittent focus lapses or window blur events. System flagged behavioral inconsistencies.",
-          quote: `[TELEMETRY_STREAM] -> Average Focus Stability: ${resultsData.gaze_score}% across entire protocol duration.`,
-          type: 'strength'
+          quote: `[TELEMETRY_STREAM] -> Average Focus Stability: ${resultsData.gaze_score || 0}% across entire protocol duration.`,
+          type: (resultsData.gaze_score || 0) >= 70 ? 'strength' : 'weakness'
       }
   ];
 
   const getMetricValue = (label) => {
       const metric = resultsData.metrics.find(m => m.label.toLowerCase().includes(label.toLowerCase()));
-      return metric ? metric.value : Math.floor(Math.random() * 30 + 60);
+      return metric ? metric.value : 0;
   };
 
   const handleExport = async () => {
@@ -189,7 +189,9 @@ const Results = () => {
       }
   };
 
-  const isHire = resultsData.overall_score >= 70;
+  const isHire = resultsData.overall_score >= 60 && resultsData.status !== 'INCOMPLETE';
+  const isRejected = resultsData.overall_score < 40 || resultsData.status === 'INCOMPLETE';
+  const isBorderline = !isHire && !isRejected;
 
   return (
     <div className="min-h-screen w-full bg-[#050505] text-white p-4 sm:p-8 md:p-12 flex justify-center font-sans selection:bg-electric selection:text-[#050505]">
@@ -264,10 +266,17 @@ const Results = () => {
               <div className="flex justify-between items-end border-t-2 border-white pt-6">
                  <div>
                    <h3 className="text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1">Final Verdict</h3>
-                   <div className={`text-2xl font-black uppercase tracking-widest flex items-center gap-2 ${isHire ? 'text-[#CCFF00]' : 'text-electric'}`}>
-                     {isHire ? <CheckSquare className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
-                     {isHire ? 'APPROVE / HIRE' : 'REJECT / REVIEW'}
-                   </div>
+                    <div className={`text-2xl font-black uppercase tracking-widest flex items-center gap-2 ${
+                      isHire ? 'text-[#CCFF00]' : 
+                      resultsData.status === 'INCOMPLETE' ? 'text-zinc-500' :
+                      'text-red-500'
+                    }`}>
+                      {isHire ? <CheckSquare className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
+                      {
+                        resultsData.status === 'INCOMPLETE' ? 'INCOMPLETE / VOID' :
+                        isHire ? 'APPROVE / HIRE' : 'REJECT / FAILED'
+                      }
+                    </div>
                  </div>
                   <div className="text-right">
                     <h3 className="text-[10px] sm:text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1">Index Score</h3>

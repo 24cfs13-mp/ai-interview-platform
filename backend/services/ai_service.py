@@ -60,7 +60,7 @@ def process_candidate_message(candidate_message: str, conversation_history: list
     try:
         # NEW CREWAI STANDARD: Just pass the provider/model string.
         # This completely bypasses the Pydantic validation error.
-        # Upgraded to gemini-2.5-flash as 1.5 versions are no longer supported.
+        # Using the standard stable model for Gemini.
         llm_model = "gemini/gemini-2.5-flash"
 
         interviewer_agent = Agent(
@@ -153,8 +153,8 @@ Do NOT include markdown like ```json.
             tasks=[interview_task, evaluate_task, bias_task, compile_task],
             process=Process.sequential,
             verbose=False,
-            memory=False  # CRITICAL: Prevent CrewAI from attempting to initialize OpenAI embeddings.
-            # Removed manager_llm as it is not needed for sequential processes and triggers validation checks.
+            memory=False,  # CRITICAL: Prevent CrewAI from attempting to initialize OpenAI embeddings.
+            manager_llm=llm_model  # Explicitly set model for the crew manager if needed
         )
 
         result = crew.kickoff()

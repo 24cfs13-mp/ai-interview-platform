@@ -49,7 +49,7 @@ async def get_results(
     return ResultResponse(
         session_id=session_id,
         candidate_name=current_user["name"],
-        overall_score=int(result["overall_score"]),
+        overall_score=int(result.get("overall_score", 0)),
         metrics=[
             ScoreMetric(label="Technical Depth", value=feedback.get("technical_depth", 0)),
             ScoreMetric(label="Communication", value=feedback.get("communication", 0)),
@@ -57,6 +57,6 @@ async def get_results(
         ],
         strengths=feedback.get("strengths", []),
         improvements=feedback.get("areas_for_improvement", []),
-        status="Finalized",
-        gaze_score=feedback.get("gaze_score", 85)
+        status=result.get("status", "COMPLETED"),
+        gaze_score=feedback.get("gaze_score", 0)
     )
