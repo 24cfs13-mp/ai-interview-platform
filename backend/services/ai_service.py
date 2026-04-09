@@ -210,7 +210,7 @@ Do NOT include markdown like ```json.
         except Exception as e:
             error_str = str(e).lower()
             # If the error is a rate limit/quota issue, rotate the key!
-            if "429" in error_str or "quota" in error_str or "exhausted" in error_str or "limit" in error_str:
+            if "429" in error_str or "quota" in error_str or "exhausted" in error_str or "limit" in error_str or "503" in error_str or "unavailable" in error_str:
                 logger.warning(f"🚨 API Key {current_key_index + 1} hit rate limit! Swapping to next key...")
                 # Move to the next key in the pool, loop back to 0 if at the end
                 current_key_index = (current_key_index + 1) % len(API_KEYS)

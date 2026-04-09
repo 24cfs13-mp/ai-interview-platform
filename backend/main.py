@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import auth, setup, interview, results
 from dotenv import load_dotenv
+from database import ping_db # <-- Imported our new ping function
 
 load_dotenv()
 
@@ -11,10 +12,15 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Configure CORS for deployment (Beginner-friendly: Allow all)
+# Run the DB check when server starts
+@app.on_event("startup")
+async def startup_event():
+    await ping_db()
+
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, you'd replace this with your Vercel URL
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
